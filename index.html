@@ -184,18 +184,38 @@
     }
 
     .results {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .results-milestones {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 12px;
-      margin-bottom: 20px;
     }
 
-    @media (min-width: 900px) {
-      .results { grid-template-columns: repeat(4, 1fr); }
+    @media (max-width: 640px) {
+      .results-milestones { grid-template-columns: 1fr; }
     }
 
-    @media (max-width: 480px) {
-      .results { grid-template-columns: 1fr; }
+    /* 65歳時点 + 老後資金判定をまとめた強調エリア */
+    .retirement-block {
+      background: linear-gradient(180deg, rgba(124, 58, 237, 0.07) 0%, rgba(124, 58, 237, 0.02) 100%);
+      border: 1.5px solid rgba(124, 58, 237, 0.22);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    @media (min-width: 768px) {
+      .retirement-block {
+        display: grid;
+        grid-template-columns: 1.45fr 36px 1fr;
+        align-items: stretch;
+        gap: 0 10px;
+        padding: 20px;
+      }
     }
 
     .result-item {
@@ -208,12 +228,94 @@
       background: linear-gradient(135deg, var(--retire-light) 0%, #f5f3ff 100%);
     }
 
+    .result-item.age65.featured {
+      padding: 22px 18px;
+      min-height: 168px;
+      border: 2px solid rgba(124, 58, 237, 0.4);
+      box-shadow: 0 4px 18px rgba(124, 58, 237, 0.14);
+    }
+
+    @media (min-width: 768px) {
+      .result-item.age65.featured {
+        padding: 26px 22px;
+        min-height: 180px;
+      }
+    }
+
     .result-item.final {
       background: linear-gradient(135deg, #d1fae5 0%, #ecfdf5 100%);
     }
 
     .result-item.age65 .breakdown-row.total .breakdown-value {
       color: var(--retire);
+    }
+
+    .result-item.age65.featured .result-label {
+      font-size: 1rem;
+    }
+
+    .result-item.age65.featured .result-badge {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 2px 8px;
+      font-size: 0.625rem;
+      font-weight: 700;
+      color: var(--retire);
+      background: rgba(124, 58, 237, 0.12);
+      border-radius: 999px;
+      vertical-align: middle;
+    }
+
+    .result-item.age65.featured .breakdown-value {
+      font-size: 0.875rem;
+    }
+
+    .result-item.age65.featured .breakdown-row.total .breakdown-value {
+      font-size: 1.125rem;
+    }
+
+    /* 65歳カード → 老後資金判定 へのつなぎ */
+    .retirement-link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 10px 0;
+      color: var(--retire);
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    @media (min-width: 768px) {
+      .retirement-link {
+        padding: 0 4px;
+      }
+    }
+
+    .retirement-link-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(124, 58, 237, 0.12);
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .retirement-link-arrow-h { display: none; }
+
+    @media (min-width: 768px) {
+      .retirement-link-arrow-v { display: none; }
+      .retirement-link-arrow-h { display: flex; }
+    }
+
+    .retirement-block .retirement-card {
+      margin-bottom: 0;
     }
 
     .result-header {
@@ -407,8 +509,9 @@
     <header>
       <h1>資産推移シミュレーター</h1>
       <div class="header-desc">
-        <p>現在の資産、年間貯蓄額、投資割合、想定利回りをもとに、将来の資産推移をシミュレーションできます。</p>
-        <p>10年後・20年後・65歳時点・最終年の資産を確認し、長期的な資産形成の参考としてご活用ください。</p>
+        <p>現在の資産、年間貯蓄額、投資割合、想定利回りをもとに、将来の資産形成をシミュレーションできます。</p>
+        <p>10年後・20年後・65歳時点・最終年の資産を確認し、老後に向けた資産形成の参考としてご活用ください。</p>
+        <p>積立終了年齢にも対応しており、退職後の資産推移も確認できます。</p>
       </div>
     </header>
 
@@ -423,6 +526,14 @@
               <span class="unit">歳</span>
             </div>
             <p class="hint">65歳時点の資産と老後資金判定に使用します</p>
+          </div>
+          <div class="form-group">
+            <label for="contributionEndAge">積立終了年齢</label>
+            <div class="input-wrap">
+              <input type="number" id="contributionEndAge" value="65" min="0" max="120" step="1">
+              <span class="unit">歳</span>
+            </div>
+            <p class="hint">この年齢以降は新規積立を停止し、既存資産のみ運用を継続します</p>
           </div>
           <div class="form-group">
             <label for="currentAssets">現在資産</label>
@@ -468,40 +579,49 @@
       <section class="card">
         <h2>シミュレーション結果</h2>
         <div class="results">
-          <div class="result-item" id="card10">
-            <div class="result-header">
-              <div class="result-label">10年後</div>
-              <div class="result-age" id="age10"></div>
+          <div class="results-milestones">
+            <div class="result-item" id="card10">
+              <div class="result-header">
+                <div class="result-label">10年後</div>
+                <div class="result-age" id="age10"></div>
+              </div>
+              <div class="breakdown" id="breakdown10"></div>
             </div>
-            <div class="breakdown" id="breakdown10"></div>
-          </div>
-          <div class="result-item" id="card20">
-            <div class="result-header">
-              <div class="result-label">20年後</div>
-              <div class="result-age" id="age20"></div>
+            <div class="result-item" id="card20">
+              <div class="result-header">
+                <div class="result-label">20年後</div>
+                <div class="result-age" id="age20"></div>
+              </div>
+              <div class="breakdown" id="breakdown20"></div>
             </div>
-            <div class="breakdown" id="breakdown20"></div>
-          </div>
-          <div class="result-item age65" id="card65">
-            <div class="result-header">
-              <div class="result-label">65歳時点</div>
-              <div class="result-age" id="age65"></div>
+            <div class="result-item final" id="cardFinal">
+              <div class="result-header">
+                <div class="result-label">最終年</div>
+                <div class="result-age" id="ageFinal"></div>
+              </div>
+              <div class="breakdown" id="breakdownFinal"></div>
             </div>
-            <div class="breakdown" id="breakdown65"></div>
           </div>
-          <div class="result-item final" id="cardFinal">
-            <div class="result-header">
-              <div class="result-label">最終年</div>
-              <div class="result-age" id="ageFinal"></div>
-            </div>
-            <div class="breakdown" id="breakdownFinal"></div>
-          </div>
-        </div>
 
-        <div class="retirement-card unavailable" id="retirementCard">
-          <div class="retirement-title">老後資金判定</div>
-          <div class="retirement-message" id="retirementMessage">—</div>
-          <p class="retirement-note" id="retirementNote"></p>
+          <div class="retirement-block">
+            <div class="result-item age65 featured" id="card65">
+              <div class="result-header">
+                <div class="result-label">65歳時点<span class="result-badge">老後の目安</span></div>
+                <div class="result-age" id="age65"></div>
+              </div>
+              <div class="breakdown" id="breakdown65"></div>
+            </div>
+            <div class="retirement-link" aria-hidden="true">
+              <span class="retirement-link-arrow retirement-link-arrow-v">↓</span>
+              <span class="retirement-link-arrow retirement-link-arrow-h">→</span>
+              <span class="retirement-link-text">総資産をもとに<br>老後資金を判定</span>
+            </div>
+            <div class="retirement-card unavailable" id="retirementCard">
+              <div class="retirement-title">老後資金判定</div>
+              <div class="retirement-message" id="retirementMessage">—</div>
+              <p class="retirement-note" id="retirementNote"></p>
+            </div>
+          </div>
         </div>
 
         <div class="chart-legend" aria-hidden="true">
@@ -515,13 +635,14 @@
         <div class="note">
           <p>※ 投資資産は想定利回りで複利運用、現金資産は利回り0%で積み立てると仮定しています。</p>
           <p>※ グラフでは下が現金資産（緑）、その上に投資資産（青）が積み上がり、合計が総資産（黒線）になります。</p>
-          <p>※ 65歳時点の資産は、現在の条件を維持したまま65歳まで積み立て・運用した場合の目安です。老後資金判定は総資産2,000万円・5,000万円を目安とした参考情報です。</p>
+          <p>※ 65歳時点の資産は、積立終了年齢まで積立し、その後も投資資産の運用を継続した場合の目安です。老後資金判定は総資産2,000万円・5,000万円を目安とした参考情報です。</p>
         </div>
       </section>
     </div>
 
     <footer class="disclaimer">
       <p>※本シミュレーターは一定の条件に基づく参考試算です。実際の運用成果や将来の資産額を保証するものではありません。</p>
+      <p>※税金、手数料、物価上昇率（インフレ）、社会保険料等は考慮していません。</p>
       <p>投資利回りやインフレ率などの将来予測には不確実性があります。ご利用にあたっては、ご自身で内容をご確認のうえご判断ください。</p>
     </footer>
   </div>
@@ -530,6 +651,7 @@
     // ── DOM 参照 ──────────────────────────────────────────
     const inputs = {
       currentAge: document.getElementById('currentAge'),
+      contributionEndAge: document.getElementById('contributionEndAge'),
       currentAssets: document.getElementById('currentAssets'),
       annualSavings: document.getElementById('annualSavings'),
       investRatio: document.getElementById('investRatio'),
@@ -611,10 +733,27 @@
       });
     }
 
-    // ── シミュレーション（計算ロジックは変更なし） ───────────
+    // ── シミュレーション ────────────────────────────────────
+
+    /**
+     * その年に新規積立を行うかどうか
+     * year 年目の終わり時点の年齢が積立終了年齢以下なら積立継続
+     * 例: 現在30歳・積立終了65歳 → 35年目まで積立（65歳到達まで）
+     */
+    function shouldContributeAtYear(currentAge, year, contributionEndAge) {
+      return (currentAge + year) <= contributionEndAge;
+    }
 
     function simulate(params) {
-      const { currentAssets, annualSavings, investRatio, returnRate, simYears } = params;
+      const {
+        currentAssets,
+        annualSavings,
+        investRatio,
+        returnRate,
+        simYears,
+        currentAge,
+        contributionEndAge,
+      } = params;
       const ratio = Math.min(100, Math.max(0, investRatio)) / 100;
       const rate = returnRate / 100;
 
@@ -623,11 +762,17 @@
       const timeline = [{ year: 0, total: currentAssets, invested: currentAssets, cash: 0 }];
 
       for (let y = 1; y <= simYears; y++) {
+        // 投資資産は積立終了後も想定利回りで運用継続
         invested *= (1 + rate);
-        const newInvest = annualSavings * ratio;
-        const newCash = annualSavings * (1 - ratio);
-        invested += newInvest;
-        cash += newCash;
+
+        // 積立終了年齢を超えた年以降は、年間貯蓄・投資割合による新規積立を停止
+        if (shouldContributeAtYear(currentAge, y, contributionEndAge)) {
+          const newInvest = annualSavings * ratio;
+          const newCash = annualSavings * (1 - ratio);
+          invested += newInvest;
+          cash += newCash;
+        }
+
         timeline.push({ year: y, total: invested + cash, invested, cash });
       }
 
@@ -868,7 +1013,8 @@
     // ── 画面更新 ────────────────────────────────────────────
 
     function update() {
-      const currentAge = parseNumberInput(inputs.currentAge, 30);
+      const currentAge = Math.round(parseNumberInput(inputs.currentAge, 30));
+      const contributionEndAge = Math.round(parseNumberInput(inputs.contributionEndAge, 65));
       const currentAssets = parseInputNumber(inputs.currentAssets.value);
       const annualSavings = parseNumberInput(inputs.annualSavings, 0);
       const investRatio = parseNumberInput(inputs.investRatio, 0);
@@ -876,6 +1022,7 @@
       const simYears = Math.max(1, Math.round(parseNumberInput(inputs.simYears, 30)));
 
       inputs.simYears.value = simYears;
+      inputs.contributionEndAge.value = contributionEndAge;
 
       const simParams = {
         currentAssets,
@@ -883,6 +1030,8 @@
         investRatio,
         returnRate,
         simYears,
+        currentAge,
+        contributionEndAge,
       };
 
       const timeline = simulate(simParams);
