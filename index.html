@@ -37,40 +37,42 @@
       color: var(--text);
       line-height: 1.6;
       min-height: 100vh;
+      padding: 24px 16px 48px;
     }
 
     .container {
       max-width: 960px;
       margin: 0 auto;
-      padding: 24px 16px 48px;
     }
 
+    /* ページ上部ヘッダー（他シミュレーターと統一） */
     header {
+      background: linear-gradient(135deg, #2b6cb0, #3182ce);
+      color: #fff;
+      border-radius: 12px;
+      padding: 28px 24px;
+      margin-bottom: 24px;
       text-align: center;
-      margin-bottom: 32px;
     }
 
     header h1 {
-      font-size: clamp(1.4rem, 4vw, 1.75rem);
+      font-size: clamp(1.25rem, 4vw, 1.4rem);
       font-weight: 700;
+      margin-bottom: 8px;
     }
 
-    header p {
-      margin-top: 6px;
-      font-size: 0.875rem;
-      color: var(--text-muted);
-    }
-
-    .intro-desc {
-      margin: 14px auto 0;
+    .header-desc {
       max-width: 560px;
-      font-size: 0.8125rem;
-      color: var(--text-muted);
-      line-height: 1.75;
-      text-align: center;
+      margin: 0 auto;
     }
 
-    .intro-desc p + p {
+    .header-desc p {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      line-height: 1.75;
+    }
+
+    .header-desc p + p {
       margin-top: 8px;
     }
 
@@ -404,7 +406,7 @@
   <div class="container">
     <header>
       <h1>資産推移シミュレーター</h1>
-      <div class="intro-desc">
+      <div class="header-desc">
         <p>現在の資産、年間貯蓄額、投資割合、想定利回りをもとに、将来の資産推移をシミュレーションできます。</p>
         <p>10年後・20年後・65歳時点・最終年の資産を確認し、長期的な資産形成の参考としてご活用ください。</p>
       </div>
