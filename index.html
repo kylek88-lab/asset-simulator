@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>資産推移シミュレーター</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0f4f8;
+      --surface: #ffffff;
+      --primary: #2563eb;
+      --primary-light: #dbeafe;
+      --invest: #2563eb;
+      --invest-bg: rgba(37, 99, 235, 0.75);
+      --cash: #059669;
+      --cash-bg: rgba(5, 150, 105, 0.55);
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --accent: #059669;
+      --retire: #7c3aed;
+      --retire-light: #ede9fe;
+      --warn: #ea580c;
+      --warn-light: #ffedd5;
+      --good: #059669;
+      --good-light: #d1fae5;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.06);
+    }
+
+    body {
+      font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    header h1 {
+      font-size: clamp(1.4rem, 4vw, 1.75rem);
+      font-weight: 700;
+    }
+
+    header p {
+      margin-top: 6px;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    .intro-desc {
+      margin: 14px auto 0;
+      max-width: 560px;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.75;
+      text-align: center;
+    }
+
+    .intro-desc p + p {
+      margin-top: 8px;
+    }
+
+    .disclaimer {
+      margin-top: 36px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      max-width: 640px;
+      margin-left: auto;
+      margin-right: auto;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      line-height: 1.75;
+      text-align: center;
+    }
+
+    .disclaimer p + p {
+      margin-top: 10px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .grid {
+        grid-template-columns: 340px 1fr;
+        align-items: start;
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--primary-light);
+      color: var(--primary);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    input[type="number"],
+    input[type="text"].money-input {
+      flex: 1;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--surface);
+      transition: border-color .2s;
+    }
+
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .unit {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .hint {
+      margin-top: 6px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .results {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    @media (min-width: 900px) {
+      .results { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    @media (max-width: 480px) {
+      .results { grid-template-columns: 1fr; }
+    }
+
+    .result-item {
+      background: linear-gradient(135deg, var(--primary-light) 0%, #eff6ff 100%);
+      border-radius: 10px;
+      padding: 14px 12px;
+    }
+
+    .result-item.age65 {
+      background: linear-gradient(135deg, var(--retire-light) 0%, #f5f3ff 100%);
+    }
+
+    .result-item.final {
+      background: linear-gradient(135deg, #d1fae5 0%, #ecfdf5 100%);
+    }
+
+    .result-item.age65 .breakdown-row.total .breakdown-value {
+      color: var(--retire);
+    }
+
+    .result-header {
+      text-align: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,255,255,.6);
+    }
+
+    .result-label {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .result-age {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .breakdown-row.total {
+      margin-bottom: 0;
+      margin-top: 2px;
+    }
+
+    .breakdown-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .breakdown-label::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .breakdown-label.invest::before { background: var(--invest); }
+    .breakdown-label.cash::before { background: var(--cash); }
+
+    .breakdown-value {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--text);
+      text-align: right;
+    }
+
+    .breakdown-row.total .breakdown-label {
+      font-size: 0.75rem;
+      color: var(--text);
+    }
+
+    .breakdown-row.total .breakdown-value {
+      font-size: 0.9375rem;
+      color: var(--primary);
+    }
+
+    .result-item.final .breakdown-row.total .breakdown-value {
+      color: var(--accent);
+    }
+
+    .breakdown-divider {
+      height: 1px;
+      background: rgba(100, 116, 139, 0.25);
+      margin: 8px 0;
+    }
+
+    .result-unavailable {
+      text-align: center;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      padding: 8px 0;
+    }
+
+    /* 老後資金判定カード */
+    .retirement-card {
+      border-radius: 10px;
+      padding: 18px 16px;
+      margin-bottom: 24px;
+      border: 1.5px solid transparent;
+    }
+
+    .retirement-card.unavailable {
+      background: #f8fafc;
+      border-color: var(--border);
+    }
+
+    .retirement-card.good {
+      background: linear-gradient(135deg, var(--good-light) 0%, #ecfdf5 100%);
+      border-color: rgba(5, 150, 105, 0.35);
+    }
+
+    .retirement-card.normal {
+      background: linear-gradient(135deg, var(--primary-light) 0%, #eff6ff 100%);
+      border-color: rgba(37, 99, 235, 0.35);
+    }
+
+    .retirement-card.warning {
+      background: linear-gradient(135deg, var(--warn-light) 0%, #fff7ed 100%);
+      border-color: rgba(234, 88, 12, 0.35);
+    }
+
+    .retirement-title {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .retirement-message {
+      font-size: clamp(1rem, 3vw, 1.125rem);
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .retirement-card.good .retirement-message { color: var(--good); }
+    .retirement-card.normal .retirement-message { color: var(--primary); }
+    .retirement-card.warning .retirement-message { color: var(--warn); }
+    .retirement-card.unavailable .retirement-message { color: var(--text-muted); font-size: 0.875rem; font-weight: 600; }
+
+    .retirement-note {
+      margin-top: 10px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 300px;
+    }
+
+    @media (min-width: 768px) {
+      .chart-wrap { height: 360px; }
+    }
+
+    .chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px 24px;
+      margin-bottom: 12px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    .legend-swatch.invest { background: var(--invest-bg); border: 1.5px solid var(--invest); }
+    .legend-swatch.cash { background: var(--cash-bg); border: 1.5px solid var(--cash); }
+    .legend-swatch.total { background: transparent; border: 2px solid var(--text); border-radius: 0; width: 14px; height: 0; align-self: center; }
+
+    .note {
+      margin-top: 16px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .note p + p { margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>資産推移シミュレーター</h1>
+      <div class="intro-desc">
+        <p>現在の資産、年間貯蓄額、投資割合、想定利回りをもとに、将来の資産推移をシミュレーションできます。</p>
+        <p>10年後・20年後・65歳時点・最終年の資産を確認し、長期的な資産形成の参考としてご活用ください。</p>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <h2>入力条件</h2>
+        <form id="simForm" autocomplete="off">
+          <div class="form-group">
+            <label for="currentAge">現在年齢</label>
+            <div class="input-wrap">
+              <input type="number" id="currentAge" value="30" min="0" max="120" step="1">
+              <span class="unit">歳</span>
+            </div>
+            <p class="hint">65歳時点の資産と老後資金判定に使用します</p>
+          </div>
+          <div class="form-group">
+            <label for="currentAssets">現在資産</label>
+            <div class="input-wrap">
+              <input type="text" inputmode="numeric" class="money-input" id="currentAssets" value="300" autocomplete="off">
+              <span class="unit">万円</span>
+            </div>
+            <p class="hint" id="currentAssetsHint">300万円</p>
+          </div>
+          <div class="form-group">
+            <label for="annualSavings">年間貯蓄額</label>
+            <div class="input-wrap">
+              <input type="number" id="annualSavings" value="60" min="0" step="1">
+              <span class="unit">万円</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="investRatio">投資割合</label>
+            <div class="input-wrap">
+              <input type="number" id="investRatio" value="70" min="0" max="100" step="1">
+              <span class="unit">%</span>
+            </div>
+            <p class="hint">年間貯蓄のうち、投資に回す割合（残りは現金として積み立て）</p>
+          </div>
+          <div class="form-group">
+            <label for="returnRate">想定利回り</label>
+            <div class="input-wrap">
+              <input type="number" id="returnRate" value="5" min="0" max="30" step="0.1">
+              <span class="unit">%/年</span>
+            </div>
+            <p class="hint">投資部分に対する年率の運用益（複利で計算）</p>
+          </div>
+          <div class="form-group">
+            <label for="simYears">シミュレーション年数</label>
+            <div class="input-wrap">
+              <input type="number" id="simYears" value="30" min="1" max="80" step="1">
+              <span class="unit">年</span>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>シミュレーション結果</h2>
+        <div class="results">
+          <div class="result-item" id="card10">
+            <div class="result-header">
+              <div class="result-label">10年後</div>
+              <div class="result-age" id="age10"></div>
+            </div>
+            <div class="breakdown" id="breakdown10"></div>
+          </div>
+          <div class="result-item" id="card20">
+            <div class="result-header">
+              <div class="result-label">20年後</div>
+              <div class="result-age" id="age20"></div>
+            </div>
+            <div class="breakdown" id="breakdown20"></div>
+          </div>
+          <div class="result-item age65" id="card65">
+            <div class="result-header">
+              <div class="result-label">65歳時点</div>
+              <div class="result-age" id="age65"></div>
+            </div>
+            <div class="breakdown" id="breakdown65"></div>
+          </div>
+          <div class="result-item final" id="cardFinal">
+            <div class="result-header">
+              <div class="result-label">最終年</div>
+              <div class="result-age" id="ageFinal"></div>
+            </div>
+            <div class="breakdown" id="breakdownFinal"></div>
+          </div>
+        </div>
+
+        <div class="retirement-card unavailable" id="retirementCard">
+          <div class="retirement-title">老後資金判定</div>
+          <div class="retirement-message" id="retirementMessage">—</div>
+          <p class="retirement-note" id="retirementNote"></p>
+        </div>
+
+        <div class="chart-legend" aria-hidden="true">
+          <span class="legend-item"><span class="legend-swatch cash"></span>現金資産</span>
+          <span class="legend-item"><span class="legend-swatch invest"></span>投資資産</span>
+          <span class="legend-item"><span class="legend-swatch total"></span>総資産</span>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="assetChart"></canvas>
+        </div>
+        <div class="note">
+          <p>※ 投資資産は想定利回りで複利運用、現金資産は利回り0%で積み立てると仮定しています。</p>
+          <p>※ グラフでは下が現金資産（緑）、その上に投資資産（青）が積み上がり、合計が総資産（黒線）になります。</p>
+          <p>※ 65歳時点の資産は、現在の条件を維持したまま65歳まで積み立て・運用した場合の目安です。老後資金判定は総資産2,000万円・5,000万円を目安とした参考情報です。</p>
+        </div>
+      </section>
+    </div>
+
+    <footer class="disclaimer">
+      <p>※本シミュレーターは一定の条件に基づく参考試算です。実際の運用成果や将来の資産額を保証するものではありません。</p>
+      <p>投資利回りやインフレ率などの将来予測には不確実性があります。ご利用にあたっては、ご自身で内容をご確認のうえご判断ください。</p>
+    </footer>
+  </div>
+
+  <script>
+    // ── DOM 参照 ──────────────────────────────────────────
+    const inputs = {
+      currentAge: document.getElementById('currentAge'),
+      currentAssets: document.getElementById('currentAssets'),
+      annualSavings: document.getElementById('annualSavings'),
+      investRatio: document.getElementById('investRatio'),
+      returnRate: document.getElementById('returnRate'),
+      simYears: document.getElementById('simYears'),
+    };
+    const currentAssetsHint = document.getElementById('currentAssetsHint');
+
+    const RETIREMENT_AGE = 65;
+
+    const resultCards = [
+      { year: 10, ageEl: document.getElementById('age10'), breakdownEl: document.getElementById('breakdown10') },
+      { year: 20, ageEl: document.getElementById('age20'), breakdownEl: document.getElementById('breakdown20') },
+      { year: null, ageEl: document.getElementById('ageFinal'), breakdownEl: document.getElementById('breakdownFinal') },
+    ];
+
+    const age65Els = {
+      age: document.getElementById('age65'),
+      breakdown: document.getElementById('breakdown65'),
+    };
+
+    const retirementEls = {
+      card: document.getElementById('retirementCard'),
+      message: document.getElementById('retirementMessage'),
+      note: document.getElementById('retirementNote'),
+    };
+
+    // ── 数値フォーマット ────────────────────────────────────
+
+    /** 入力文字列から数値を取り出す（カンマは除去して計算に使う） */
+    function parseInputNumber(str) {
+      const cleaned = String(str).replace(/[,，\s]/g, '');
+      const n = Number(cleaned);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    /** 入力欄表示用のカンマ区切り（万円単位） */
+    function formatInputComma(value) {
+      if (!Number.isFinite(value) || value === 0) return '0';
+      return Math.round(value).toLocaleString('ja-JP');
+    }
+
+    /** 結果表示用：万円単位の金額（例: 3,800万円 / 1.25億円） */
+    function formatManYen(manYen) {
+      if (manYen >= 10000) {
+        return (manYen / 10000).toLocaleString('ja-JP', { maximumFractionDigits: 2 }) + '億円';
+      }
+      return manYen.toLocaleString('ja-JP', { maximumFractionDigits: 0 }) + '万円';
+    }
+
+    /** 現在資産入力欄の下に表示するヒント（例: 1,000万円） */
+    function formatManYenHint(manYen) {
+      return formatManYen(manYen);
+    }
+
+    function parseNumberInput(el, fallback) {
+      const v = parseFloat(el.value);
+      return isNaN(v) ? fallback : v;
+    }
+
+    // ── 現在資産入力欄（カンマ区切り + 万円ヒント） ─────────
+
+    function setupMoneyInput(el, hintEl) {
+      el.addEventListener('focus', () => {
+        const num = parseInputNumber(el.value);
+        el.value = num === 0 ? '' : String(num);
+      });
+
+      el.addEventListener('blur', () => {
+        const num = parseInputNumber(el.value);
+        el.value = formatInputComma(num);
+        if (hintEl) hintEl.textContent = formatManYenHint(num);
+      });
+
+      el.addEventListener('input', () => {
+        const num = parseInputNumber(el.value);
+        if (hintEl) hintEl.textContent = formatManYenHint(num);
+        update();
+      });
+    }
+
+    // ── シミュレーション（計算ロジックは変更なし） ───────────
+
+    function simulate(params) {
+      const { currentAssets, annualSavings, investRatio, returnRate, simYears } = params;
+      const ratio = Math.min(100, Math.max(0, investRatio)) / 100;
+      const rate = returnRate / 100;
+
+      let invested = currentAssets;
+      let cash = 0;
+      const timeline = [{ year: 0, total: currentAssets, invested: currentAssets, cash: 0 }];
+
+      for (let y = 1; y <= simYears; y++) {
+        invested *= (1 + rate);
+        const newInvest = annualSavings * ratio;
+        const newCash = annualSavings * (1 - ratio);
+        invested += newInvest;
+        cash += newCash;
+        timeline.push({ year: y, total: invested + cash, invested, cash });
+      }
+
+      return timeline;
+    }
+
+    function getSnapshotAtYear(timeline, year) {
+      if (year >= timeline.length) return null;
+      const d = timeline[year];
+      return { invested: d.invested, cash: d.cash, total: d.total };
+    }
+
+    /** 65歳までに必要なシミュレーション年数（65歳未満の場合のみ） */
+    function getYearsToRetirementAge(currentAge) {
+      return RETIREMENT_AGE - currentAge;
+    }
+
+    /**
+     * 65歳時点の資産スナップショットを取得
+     * グラフ用の simYears より先まで必要な場合は、同じロジックで別途計算する
+     */
+    function getSnapshotAtAge65(currentAge, timeline, simParams) {
+      if (currentAge >= RETIREMENT_AGE) return null;
+
+      const yearsTo65 = getYearsToRetirementAge(currentAge);
+      const fromTimeline = getSnapshotAtYear(timeline, yearsTo65);
+      if (fromTimeline) return fromTimeline;
+
+      const extended = simulate({ ...simParams, simYears: yearsTo65 });
+      return getSnapshotAtYear(extended, yearsTo65);
+    }
+
+    /**
+     * 65歳時点の総資産（万円）から老後資金判定
+     * 2,000万円未満 → 注意 / 2,000〜5,000万円未満 → 一定の準備 / 5,000万円以上 → 十分
+     */
+    function evaluateRetirementFund(totalManYen) {
+      if (totalManYen < 2000) {
+        return {
+          level: 'warning',
+          icon: '⚠',
+          message: '老後資金に注意',
+          note: '総資産が2,000万円未満です。貯蓄額や投資割合を見直す余地があるかもしれません。',
+        };
+      }
+      if (totalManYen < 5000) {
+        return {
+          level: 'normal',
+          icon: '△',
+          message: '老後資金は一定の準備ができています',
+          note: '総資産が2,000万円以上です。引き続き計画的な積立を続けると安心感が高まります。',
+        };
+      }
+      return {
+        level: 'good',
+        icon: '✓',
+        message: '老後資金に十分な余裕があります',
+        note: '総資産が5,000万円以上です。老後の生活費確保に向けて、良好な水準と言えます。',
+      };
+    }
+
+    // ── 結果カードの内訳 HTML ───────────────────────────────
+
+    function renderBreakdown(el, snapshot) {
+      if (!snapshot) {
+        el.innerHTML = '<div class="result-unavailable">—</div>';
+        return;
+      }
+      el.innerHTML =
+        '<div class="breakdown-row">' +
+          '<span class="breakdown-label invest">投資資産</span>' +
+          '<span class="breakdown-value">' + formatManYen(snapshot.invested) + '</span>' +
+        '</div>' +
+        '<div class="breakdown-row">' +
+          '<span class="breakdown-label cash">現金資産</span>' +
+          '<span class="breakdown-value">' + formatManYen(snapshot.cash) + '</span>' +
+        '</div>' +
+        '<div class="breakdown-divider"></div>' +
+        '<div class="breakdown-row total">' +
+          '<span class="breakdown-label">総資産</span>' +
+          '<span class="breakdown-value">' + formatManYen(snapshot.total) + '</span>' +
+        '</div>';
+    }
+
+    /** 65歳時点資産カードの表示更新 */
+    function renderAge65Card(currentAge, timeline, simParams) {
+      if (currentAge >= RETIREMENT_AGE) {
+        age65Els.age.textContent = '';
+        age65Els.breakdown.innerHTML =
+          '<div class="result-unavailable">65歳以上のため対象外</div>';
+        return null;
+      }
+
+      const snapshot = getSnapshotAtAge65(currentAge, timeline, simParams);
+      age65Els.age.textContent = RETIREMENT_AGE + ' 歳';
+      renderBreakdown(age65Els.breakdown, snapshot);
+      return snapshot;
+    }
+
+    /** 老後資金判定カードの表示更新 */
+    function renderRetirementJudgment(currentAge, snapshotAt65) {
+      const { card, message, note } = retirementEls;
+      card.className = 'retirement-card';
+
+      if (currentAge >= RETIREMENT_AGE) {
+        card.classList.add('unavailable');
+        message.textContent = '65歳以上のため対象外';
+        note.textContent = '老後資金判定は、65歳時点の資産をもとに表示します。';
+        return;
+      }
+
+      if (!snapshotAt65) {
+        card.classList.add('unavailable');
+        message.textContent = '—';
+        note.textContent = '';
+        return;
+      }
+
+      const judgment = evaluateRetirementFund(snapshotAt65.total);
+      card.classList.add(judgment.level);
+      message.textContent = judgment.icon + ' ' + judgment.message;
+      note.textContent =
+        '65歳時点の総資産 ' + formatManYen(snapshotAt65.total) + ' をもとに判定しています。' +
+        judgment.note;
+    }
+
+    // ── グラフ（現金・投資の積み上げ + 総資産ライン） ───────
+
+    /** グラフの色定義（結果カードの内訳表示と統一） */
+    const CHART_COLORS = {
+      cash: { border: '#059669', fill: 'rgba(5, 150, 105, 0.6)' },
+      invest: { border: '#2563eb', fill: 'rgba(37, 99, 235, 0.75)' },
+      total: { border: '#1e293b' },
+    };
+
+    /** 積み上げグループ名（Chart.js の stack オプション用） */
+    const STACK_GROUP = 'assets';
+
+    let chart = null;
+
+    /**
+     * 積み上げ面グラフを初期化
+     * ・下層: 現金資産（積み立て分）
+     * ・上層: 投資資産（運用で増えた分）
+     * ・重ね表示: 総資産（折れ線・stack なし）
+     */
+    function initChart() {
+      const ctx = document.getElementById('assetChart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: '現金資産',
+              data: [],
+              borderColor: CHART_COLORS.cash.border,
+              backgroundColor: CHART_COLORS.cash.fill,
+              borderWidth: 1,
+              pointRadius: 0,
+              pointHoverRadius: 4,
+              fill: true,
+              tension: 0.25,
+              stack: STACK_GROUP,
+              order: 3,
+            },
+            {
+              label: '投資資産',
+              data: [],
+              borderColor: CHART_COLORS.invest.border,
+              backgroundColor: CHART_COLORS.invest.fill,
+              borderWidth: 1,
+              pointRadius: 0,
+              pointHoverRadius: 4,
+              fill: true,
+              tension: 0.25,
+              stack: STACK_GROUP,
+              order: 2,
+            },
+            {
+              label: '総資産',
+              data: [],
+              borderColor: CHART_COLORS.total.border,
+              backgroundColor: 'transparent',
+              borderWidth: 2.5,
+              pointRadius: 0,
+              pointHoverRadius: 5,
+              fill: false,
+              tension: 0.25,
+              order: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              itemSort: (a, b) => b.datasetIndex - a.datasetIndex,
+              callbacks: {
+                title: (items) => items[0].label + ' 年後',
+                label: (item) => ' ' + item.dataset.label + ': ' + formatManYen(item.raw),
+              },
+            },
+          },
+          scales: {
+            x: {
+              stacked: true,
+              title: { display: true, text: '経過年数', font: { size: 12 } },
+              grid: { display: false },
+              ticks: { maxTicksLimit: 12 },
+            },
+            y: {
+              stacked: true,
+              beginAtZero: true,
+              title: { display: true, text: '資産（万円）', font: { size: 12 } },
+              grid: { color: '#e2e8f0' },
+              ticks: {
+                callback: (v) => v.toLocaleString('ja-JP'),
+              },
+            },
+          },
+        },
+      });
+    }
+
+    /** シミュレーション結果をグラフ datasets に反映 */
+    function updateChart(timeline) {
+      chart.data.labels = timeline.map((d) => d.year);
+      chart.data.datasets[0].data = timeline.map((d) => Math.round(d.cash));
+      chart.data.datasets[1].data = timeline.map((d) => Math.round(d.invested));
+      chart.data.datasets[2].data = timeline.map((d) => Math.round(d.total));
+      chart.update('none');
+    }
+
+    // ── 画面更新 ────────────────────────────────────────────
+
+    function update() {
+      const currentAge = parseNumberInput(inputs.currentAge, 30);
+      const currentAssets = parseInputNumber(inputs.currentAssets.value);
+      const annualSavings = parseNumberInput(inputs.annualSavings, 0);
+      const investRatio = parseNumberInput(inputs.investRatio, 0);
+      const returnRate = parseNumberInput(inputs.returnRate, 0);
+      const simYears = Math.max(1, Math.round(parseNumberInput(inputs.simYears, 30)));
+
+      inputs.simYears.value = simYears;
+
+      const simParams = {
+        currentAssets,
+        annualSavings,
+        investRatio,
+        returnRate,
+        simYears,
+      };
+
+      const timeline = simulate(simParams);
+
+      resultCards.forEach(({ year, ageEl, breakdownEl }) => {
+        const targetYear = year === null ? simYears : year;
+        const snapshot = getSnapshotAtYear(timeline, targetYear);
+
+        if (snapshot) {
+          ageEl.textContent = (currentAge + targetYear) + ' 歳';
+        } else {
+          ageEl.textContent = '（' + simYears + '年未満）';
+        }
+        renderBreakdown(breakdownEl, snapshot);
+      });
+
+      const snapshotAt65 = renderAge65Card(currentAge, timeline, simParams);
+      renderRetirementJudgment(currentAge, snapshotAt65);
+
+      updateChart(timeline);
+    }
+
+    // ── 初期化 ──────────────────────────────────────────────
+
+    initChart();
+    setupMoneyInput(inputs.currentAssets, currentAssetsHint);
+
+    inputs.currentAssets.value = formatInputComma(parseInputNumber(inputs.currentAssets.value));
+    currentAssetsHint.textContent = formatManYenHint(parseInputNumber(inputs.currentAssets.value));
+
+    Object.values(inputs).forEach((el) => {
+      if (el === inputs.currentAssets) return;
+      el.addEventListener('input', update);
+    });
+
+    update();
+  </script>
+</body>
+</html>
