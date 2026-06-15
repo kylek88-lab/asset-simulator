@@ -3,6 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-32YGB007DL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-32YGB007DL');
+  </script>
   <title>資産推移シミュレーター</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
@@ -556,6 +564,96 @@
     }
 
     .note p + p { margin-top: 6px; }
+
+    /* 管理人のひとこと */
+    .admin-message {
+      margin-top: 20px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .admin-message-title {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--primary-light);
+    }
+
+    .admin-message-text {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.75;
+    }
+
+    .admin-message-text + .admin-message-text {
+      margin-top: 0.75em;
+    }
+
+    /* 関連ツール */
+    .related-tools {
+      margin-top: 20px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .related-tools-title {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--primary-light);
+    }
+
+    .related-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .related-item {
+      display: block;
+      padding: 14px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: #f8fafc;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .related-item:hover,
+    .related-item:focus-visible {
+      background: var(--primary-light);
+      border-color: rgba(37, 99, 235, 0.35);
+      outline: none;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+    }
+
+    .related-item-name {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+
+    .related-item-desc {
+      display: block;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
   </style>
 </head>
 <body>
@@ -702,6 +800,37 @@
         </div>
       </section>
     </div>
+
+    <aside class="admin-message" aria-labelledby="admin-message-heading">
+      <h2 class="admin-message-title" id="admin-message-heading">管理人のひとこと</h2>
+      <p class="admin-message-text">資産形成は、住宅ローン・教育費・老後資金をセットで考えると全体像が見えやすくなります。</p>
+      <p class="admin-message-text">積立終了年齢を設定すれば、退職後に積立を止めた場合の資産推移も試算できます。</p>
+      <p class="admin-message-text">この結果を参考に、無理のないペースで長期的な資産形成を考えてみてください。</p>
+    </aside>
+
+    <nav class="related-tools" aria-labelledby="related-tools-heading">
+      <h2 class="related-tools-title" id="related-tools-heading">関連ツール</h2>
+      <ul class="related-list">
+        <li>
+          <a class="related-item" href="https://mortgage-invest-simulator.vercel.app/" target="_blank" rel="noopener noreferrer">
+            <span class="related-item-name">🏆 人気No.1 住宅ローン × 投資比較シミュレーター</span>
+            <span class="related-item-desc">繰上返済と投資のどちらが有利か比較できます。</span>
+          </a>
+        </li>
+        <li>
+          <a class="related-item" href="https://education-fund-simulator.vercel.app/" target="_blank" rel="noopener noreferrer">
+            <span class="related-item-name">教育費シミュレーター</span>
+            <span class="related-item-desc">子どもの大学進学に向けて、積立と運用で準備できる教育資金を試算できます。</span>
+          </a>
+        </li>
+        <li>
+          <a class="related-item" href="https://car-cost-simulator-jet.vercel.app/" target="_blank" rel="noopener noreferrer">
+            <span class="related-item-name">車買い替え比較シミュレーター</span>
+            <span class="related-item-desc">現在の車を維持する場合と買い替える場合の費用を比較できます。</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
 
     <footer class="disclaimer">
       <p>※本シミュレーターは一定の条件に基づく参考試算です。実際の運用成果や将来の資産額を保証するものではありません。</p>
