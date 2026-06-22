@@ -661,6 +661,104 @@
       color: var(--text-muted);
       line-height: 1.55;
     }
+
+    /* 用語説明・結果ガイド（全シミュレーター共通） */
+    .label-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .label-row label {
+      margin-bottom: 0;
+    }
+
+    .term-help-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1px solid #cbd5e0;
+      background: #edf2f7;
+      color: #4a5568;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+      line-height: 1;
+      padding: 0;
+      font-family: inherit;
+    }
+
+    .term-help-btn:hover,
+    .term-help-btn:focus-visible {
+      background: #dbeafe;
+      border-color: #90cdf4;
+      outline: none;
+    }
+
+    .term-help-panel {
+      display: none;
+      margin: 0 0 10px;
+      padding: 10px 12px;
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      color: #4a5568;
+      line-height: 1.65;
+    }
+
+    .term-help-panel.open {
+      display: block;
+    }
+
+    .result-guide {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      background: #f7fafc;
+    }
+
+    .result-guide-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #4a5568;
+      margin-bottom: 8px;
+    }
+
+    .result-guide-body {
+      font-size: 0.88rem;
+      line-height: 1.7;
+      color: #2d3748;
+    }
+
+    .result-guide-detail {
+      display: block;
+      margin-top: 6px;
+      font-size: 0.8rem;
+      color: #718096;
+    }
+
+    .result-guide--good {
+      border-left: 4px solid #38a169;
+      background: #f0fff4;
+    }
+
+    .result-guide--warn {
+      border-left: 4px solid #d69e2e;
+      background: #fffff0;
+    }
+
+    .result-guide--bad {
+      border-left: 4px solid #e53e3e;
+      background: #fff5f5;
+    }
+
+    .result-guide--neutral {
+      border-left: 4px solid #cbd5e0;
+    }
   </style>
 </head>
 <body>
@@ -688,7 +786,11 @@
         <h2>入力条件</h2>
         <form id="simForm" autocomplete="off">
           <div class="form-group">
-            <label for="currentAge">現在年齢</label>
+            <div class="label-row">
+              <label for="currentAge">現在年齢</label>
+              <button type="button" class="term-help-btn" data-term-help="currentAge" aria-expanded="false" aria-label="現在年齢の説明">?</button>
+            </div>
+            <div class="term-help-panel" id="termHelp-currentAge"></div>
             <div class="input-wrap">
               <input type="number" id="currentAge" value="30" min="0" max="120" step="1">
               <span class="unit">歳</span>
@@ -696,7 +798,11 @@
             <p class="hint">65歳時点の資産と老後資金判定に使用します</p>
           </div>
           <div class="form-group">
-            <label for="contributionEndAge">積立終了年齢</label>
+            <div class="label-row">
+              <label for="contributionEndAge">積立終了年齢</label>
+              <button type="button" class="term-help-btn" data-term-help="contributionEndAge" aria-expanded="false" aria-label="積立終了年齢の説明">?</button>
+            </div>
+            <div class="term-help-panel" id="termHelp-contributionEndAge"></div>
             <div class="input-wrap">
               <input type="number" id="contributionEndAge" value="65" min="0" max="120" step="1">
               <span class="unit">歳</span>
@@ -704,7 +810,11 @@
             <p class="hint">この年齢以降は新規積立を停止し、既存資産のみ運用を継続します</p>
           </div>
           <div class="form-group">
-            <label for="currentAssets">現在資産</label>
+            <div class="label-row">
+              <label for="currentAssets">現在資産</label>
+              <button type="button" class="term-help-btn" data-term-help="currentAssets" aria-expanded="false" aria-label="現在資産の説明">?</button>
+            </div>
+            <div class="term-help-panel" id="termHelp-currentAssets"></div>
             <div class="input-wrap">
               <input type="text" inputmode="numeric" class="money-input" id="currentAssets" value="300" autocomplete="off">
               <span class="unit">万円</span>
@@ -712,14 +822,22 @@
             <p class="hint" id="currentAssetsHint">300万円</p>
           </div>
           <div class="form-group">
-            <label for="annualSavings">年間貯蓄額</label>
+            <div class="label-row">
+              <label for="annualSavings">年間貯蓄額</label>
+              <button type="button" class="term-help-btn" data-term-help="annualSavings" aria-expanded="false" aria-label="年間貯蓄額の説明">?</button>
+            </div>
+            <div class="term-help-panel" id="termHelp-annualSavings"></div>
             <div class="input-wrap">
               <input type="number" id="annualSavings" value="60" min="0" step="1">
               <span class="unit">万円</span>
             </div>
           </div>
           <div class="form-group">
-            <label for="investRatio">投資割合</label>
+            <div class="label-row">
+              <label for="investRatio">投資割合</label>
+              <button type="button" class="term-help-btn" data-term-help="investRatio" aria-expanded="false" aria-label="投資割合の説明">?</button>
+            </div>
+            <div class="term-help-panel" id="termHelp-investRatio"></div>
             <div class="input-wrap">
               <input type="number" id="investRatio" value="70" min="0" max="100" step="1">
               <span class="unit">%</span>
@@ -727,7 +845,11 @@
             <p class="hint">年間貯蓄のうち、投資に回す割合（残りは現金として積み立て）</p>
           </div>
           <div class="form-group">
-            <label for="returnRate">想定利回り</label>
+            <div class="label-row">
+              <label for="returnRate">想定利回り</label>
+              <button type="button" class="term-help-btn" data-term-help="returnRate" aria-expanded="false" aria-label="想定利回りの説明">?</button>
+            </div>
+            <div class="term-help-panel" id="termHelp-returnRate"></div>
             <div class="input-wrap">
               <input type="number" id="returnRate" value="5" min="0" max="30" step="0.1">
               <span class="unit">%/年</span>
@@ -735,7 +857,11 @@
             <p class="hint">投資部分に対する年率の運用益（複利で計算）</p>
           </div>
           <div class="form-group">
-            <label for="simYears">シミュレーション年数</label>
+            <div class="label-row">
+              <label for="simYears">シミュレーション年数</label>
+              <button type="button" class="term-help-btn" data-term-help="simYears" aria-expanded="false" aria-label="シミュレーション年数の説明">?</button>
+            </div>
+            <div class="term-help-panel" id="termHelp-simYears"></div>
             <div class="input-wrap">
               <input type="number" id="simYears" value="30" min="1" max="80" step="1">
               <span class="unit">年</span>
@@ -791,6 +917,8 @@
             </div>
           </div>
         </div>
+
+        <div class="result-guide result-guide--neutral" id="resultGuideMain"></div>
 
         <div class="chart-legend" aria-hidden="true">
           <span class="legend-item"><span class="legend-swatch cash"></span>現金資産</span>
@@ -853,6 +981,87 @@
   </div>
 
   <script>
+    /**
+     * 用語説明・結果ガイド共通UI
+     * 各シミュレーターの index.html に同内容を埋め込んで使用
+     */
+    var SimulatorUI = (function () {
+      /** 用語説明パネルにテキストをセットし、?ボタンの開閉を設定 */
+      function initTermHelp(terms) {
+        Object.keys(terms).forEach(function (key) {
+          var panel = document.getElementById("termHelp-" + key);
+          if (panel) panel.textContent = terms[key];
+        });
+
+        document.querySelectorAll(".term-help-btn").forEach(function (btn) {
+          btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            var key = btn.getAttribute("data-term-help");
+            var panel = document.getElementById("termHelp-" + key);
+            if (!panel) return;
+
+            var willOpen = !panel.classList.contains("open");
+            document.querySelectorAll(".term-help-panel").forEach(function (p) {
+              p.classList.remove("open");
+            });
+            document.querySelectorAll(".term-help-btn").forEach(function (b) {
+              b.setAttribute("aria-expanded", "false");
+            });
+
+            if (willOpen) {
+              panel.classList.add("open");
+              btn.setAttribute("aria-expanded", "true");
+            }
+          });
+        });
+      }
+
+      /** 結果の見方エリアを更新（level: good / warn / bad / neutral） */
+      function renderResultGuide(id, level, message, detail) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.className = "result-guide result-guide--" + level;
+        el.innerHTML =
+          '<div class="result-guide-title">結果の見方</div>' +
+          '<div class="result-guide-body">' +
+          message +
+          (detail
+            ? '<span class="result-guide-detail">' + detail + "</span>"
+            : "") +
+          "</div>";
+      }
+
+      function clearResultGuide(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.className = "result-guide result-guide--neutral";
+        el.innerHTML = "";
+      }
+
+      return {
+        initTermHelp: initTermHelp,
+        renderResultGuide: renderResultGuide,
+        clearResultGuide: clearResultGuide,
+      };
+    })();
+
+    var TERM_HELP = {
+      currentAge:
+        "あなたの今の年齢です。65歳時点の資産や老後の判定に使います。若いうちから積立を始めるほど、将来の資産は増えやすくなります。",
+      contributionEndAge:
+        "新しくお金を積み立てるのをやめる年齢です。退職後など、積立を止めるタイミングを設定できます。それ以降も既存の資産は運用を続ける想定です。",
+      currentAssets:
+        "今すでに持っている資産の合計です。普通預金や投資の残高など、手元にあるお金をすべて含めて入力してください。",
+      annualSavings:
+        "1年間で新たに貯蓄できる金額です。手取りから生活費を引いたあとに残るお金の目安を万円単位で入力します。",
+      investRatio:
+        "年間貯蓄のうち、投資に回す割合です。残りは現金として積み立てる想定です。70%なら、年間貯蓄の7割を投資に回します。",
+      returnRate:
+        "投資部分が運用によって毎年どれくらい増えるかの目安です。5%なら投資資産が1年で5%増えるイメージです。実際の成果は上下するため、あくまで目安として使います。",
+      simYears:
+        "何年先まで資産の推移を計算するかです。30年なら今から30年後までの資産を試算します。グラフや最終年の結果に反映されます。",
+    };
+
     // ── DOM 参照 ──────────────────────────────────────────
     const inputs = {
       currentAge: document.getElementById('currentAge'),
@@ -1215,6 +1424,39 @@
       chart.update('none');
     }
 
+    /** 結果の見方ガイド（65歳時点の老後資金判定） */
+    function updateResultGuide(currentAge, snapshotAt65) {
+      if (currentAge >= RETIREMENT_AGE || !snapshotAt65) {
+        SimulatorUI.clearResultGuide('resultGuideMain');
+        return;
+      }
+
+      const judgment = evaluateRetirementFund(snapshotAt65.total);
+
+      if (judgment.level === 'good') {
+        SimulatorUI.renderResultGuide(
+          'resultGuideMain',
+          'good',
+          '🟢 老後に向けた資産形成は良好と考えられます。65歳時点で十分な資産が見込まれます。',
+          '65歳時点の総資産 ' + formatManYen(snapshotAt65.total) + ' です。'
+        );
+      } else if (judgment.level === 'normal') {
+        SimulatorUI.renderResultGuide(
+          'resultGuideMain',
+          'warn',
+          '🟡 老後資金は一定の準備ができそうです。引き続き積立を続けると、安心感が高まる可能性があります。',
+          '65歳時点の総資産 ' + formatManYen(snapshotAt65.total) + ' です。'
+        );
+      } else {
+        SimulatorUI.renderResultGuide(
+          'resultGuideMain',
+          'bad',
+          '🔴 老後資金が不足する可能性があります。貯蓄額や投資割合の見直しを検討してみてください。',
+          '65歳時点の総資産 ' + formatManYen(snapshotAt65.total) + ' です。'
+        );
+      }
+    }
+
     // ── 画面更新 ────────────────────────────────────────────
 
     function update() {
@@ -1255,12 +1497,14 @@
 
       const snapshotAt65 = renderAge65Card(currentAge, timeline, simParams);
       renderRetirementJudgment(currentAge, snapshotAt65);
+      updateResultGuide(currentAge, snapshotAt65);
 
       updateChart(timeline);
     }
 
     // ── 初期化 ──────────────────────────────────────────────
 
+    SimulatorUI.initTermHelp(TERM_HELP);
     initChart();
     setupMoneyInput(inputs.currentAssets, currentAssetsHint);
 
